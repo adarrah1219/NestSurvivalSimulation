@@ -1,0 +1,50 @@
+  model
+    {
+    
+
+    # Priors for predation sources of mortality
+    alpha.p ~ dnorm(-4.257, pow(0.609*2,-2))       #informative priors: mean intercept + 2*SD of random effect
+    beta.p.ex ~ dnorm(-2.532, pow(0.272*2,-2))     #mean and 2*SD (first run with 3*SD were imprecise)  
+    
+    
+    #priors for abandonment
+    alpha.a ~ dnorm(-7.447, pow(1.351*2,-2))
+    beta.a.ex ~ dnorm(1.284,pow(0.348*2,-2))
+    
+    #priors for flooding
+    
+    alpha.f ~ dnorm(-6.040,pow(1.059*2,-2))
+    
+    
+    # Likelihood
+    for (i in 1:n) {
+    
+    ctf[i] <- exp(alpha.f)
+    ctp[i] <- exp(alpha.p + beta.p.ex*ex[i])
+    cta[i] <- exp(alpha.a + beta.a.ex*ex[i])
+    cts[i] <- 1
+    den[i] <- ctf[i] + ctp[i] + cta[i] + cts[i] 
+    
+    
+    survp[i] <- cts[i]/den[i]
+    
+    
+    
+    p[i,4] <-  ((ctf[i]/(den[i]))/(1-survp[i]))*(1-pow(survp[i],interval[i])) #probability of flooding
+    p[i,2] <-  ((cta[i]/(den[i]))/(1-survp[i]))*(1-pow(survp[i],interval[i])) #probability of abandonment 
+    p[i,3] <-  ((ctp[i]/(den[i]))/(1-survp[i]))*(1-pow(survp[i],interval[i])) #probability of predation 
+    p[i,1] <- pow(survp[i],interval[i])
+    
+    Fate[i,1:4] ~ dmulti( p[i,] , 1 )
+    
+    }
+
+ #Information gained compared to prior
+ #draw comparison values from prior
+
+ alpha.a.prior ~ dnorm(-4.257, pow(0.609*2,-2))
+    
+    
+    }
+    
+    
